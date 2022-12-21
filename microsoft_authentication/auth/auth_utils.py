@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.apps import apps
 from django.contrib.auth.hashers import make_password
+from django.http import HttpResponseForbidden
 import msal
 import requests
 import string
@@ -8,7 +9,7 @@ import random
 
 
 ms_settings = settings.MICROSOFT
-graph_url = 'https://graph.microsoft.com/v1.0'
+graph_url = 'https://graph.microsoft.com/v1.0/'
 
 
 def get_user(token):
@@ -89,21 +90,11 @@ def get_logout_url():
 
 # Non-microsoft related functions
 
-def validate_username(username):
-    return (
-        "@" in username and
-        username.split("@")[1] in settings.MICROSOFT["valid_email_domains"]
-    )
-
 
 def get_django_user(email):
-    if not validate_username(username=email):
-        return
     try:
-        user = User.objects.get(username=email)
-    except User.DoesNotExist:
-        random_password = ''.join(random.choice(string.ascii_letters) for i in range(32))
-        user = User(username=email, email=email, password=make_password(random_password))
-        user.is_staff = True
-        user.save()
+        CheckUser = apps.get_model('dashboard', 'User')
+        user = CheckUser.objects.get(username=email)
+    except CheckUser.DoesNotExist:
+        user = None
     return user
