@@ -30,6 +30,7 @@ def callback(request):
     user = get_django_user(email=email)
     if user:
         login(request, user)
+        user.set_session_key(request.session.session_key)
     else:
         return HttpResponseForbidden("Invalid email for this app.")
     return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL or "/admin")
